@@ -3,407 +3,290 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Todo List</title>
+  <title>My Todos</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "primary":                   "#006f1d",
+            "on-primary":                "#eaffe2",
+            "primary-container":         "#91f78e",
+            "on-primary-container":      "#005e17",
+            "primary-fixed":             "#91f78e",
+            "primary-fixed-dim":         "#83e881",
+            "secondary":                 "#006499",
+            "on-secondary":              "#f6f9ff",
+            "secondary-container":       "#cde5ff",
+            "on-secondary-container":    "#005685",
+            "tertiary":                  "#845500",
+            "on-tertiary":               "#fff7f3",
+            "tertiary-container":        "#feb64c",
+            "on-tertiary-container":     "#583700",
+            "error":                     "#a73b21",
+            "error-container":           "#fd795a",
+            "surface":                   "#f8fafb",
+            "surface-dim":               "#d4dbde",
+            "surface-bright":            "#f8fafb",
+            "surface-container-lowest":  "#ffffff",
+            "surface-container-low":     "#f0f4f6",
+            "surface-container":         "#eaeff0",
+            "surface-container-high":    "#e3e9eb",
+            "surface-container-highest": "#dce4e6",
+            "surface-variant":           "#dce4e6",
+            "on-surface":                "#2c3436",
+            "on-surface-variant":        "#596063",
+            "outline":                   "#747c7e",
+            "outline-variant":           "#acb3b6",
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans", "sans-serif"],
+            "body":     ["Be Vietnam Pro", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "1rem",
+            sm:   "0.5rem",
+            md:   "1rem",
+            lg:   "2rem",
+            xl:   "3rem",
+            full: "9999px",
+          },
+        },
+      },
+    }
+  </script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+    .icon-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    body    { font-family: 'Be Vietnam Pro', sans-serif; }
+    h1,h2,h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    input[type="datetime-local"] { color-scheme: light; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0f1117;
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 48px 16px;
+    /* Task orb (custom checkbox) */
+    .task-orb {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid #acb3b6; background: transparent;
+      cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .task-orb.checked {
+      background: #006f1d; border-color: #006f1d;
+      box-shadow: 0 0 0 4px #91f78e55;
+    }
+    .task-orb.checked::after {
+      content: '';
+      width: 5px; height: 9px;
+      border: 2px solid #eaffe2;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) translateY(-1px);
+      display: block;
     }
 
-    .app { width: 100%; max-width: 580px; }
+    /* Priority left accent */
+    .p-high   { border-left: 3px solid #a73b21 !important; }
+    .p-medium { border-left: 3px solid #845500 !important; }
+    .p-low    { border-left: 3px solid #006f1d !important; }
 
-    h1 { font-size: 2rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
-    .subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 28px; }
-
-    /* ── Add form ── */
-    .add-form {
-      background: #1a1d27;
-      border: 1px solid #2e3347;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    /* Slide-in animation */
+    @keyframes slideIn {
+      from { opacity:0; transform:translateY(-6px); }
+      to   { opacity:1; transform:translateY(0); }
     }
+    .slide-in { animation: slideIn 0.2s ease; }
 
-    .add-form .row1 { display: flex; gap: 8px; }
-
-    .add-form input[type="text"] {
-      flex: 1;
-      background: #0f1117;
-      border: 1.5px solid #2e3347;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 1rem;
-      color: #e2e8f0;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .add-form input[type="text"]:focus { border-color: #6366f1; }
-    .add-form input[type="text"]::placeholder { color: #475569; }
-
-    .btn-add {
-      padding: 10px 20px;
-      background: #6366f1;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.2s, transform 0.1s;
-    }
-    .btn-add:hover { background: #4f46e5; }
-    .btn-add:active { transform: scale(0.97); }
-
-    .add-form .row2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-    .add-form input[type="datetime-local"],
-    .add-form select {
-      background: #0f1117;
-      border: 1.5px solid #2e3347;
-      border-radius: 8px;
-      padding: 7px 10px;
-      font-size: 0.85rem;
-      color: #e2e8f0;
-      outline: none;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    .add-form input[type="datetime-local"]:focus,
-    .add-form select:focus { border-color: #6366f1; }
-    .add-form input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(0.6); }
-
-    .tag-picker-wrap { position: relative; }
-
-    .btn-tags {
-      background: #0f1117;
-      border: 1.5px solid #2e3347;
-      border-radius: 8px;
-      padding: 7px 10px;
-      font-size: 0.85rem;
-      color: #94a3b8;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      white-space: nowrap;
-    }
-    .btn-tags:hover { border-color: #6366f1; color: #e2e8f0; }
-
+    /* Tag popover */
     .tag-popover {
-      display: none;
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      background: #1a1d27;
-      border: 1px solid #2e3347;
-      border-radius: 10px;
-      padding: 12px;
-      min-width: 220px;
-      z-index: 100;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: none; position: absolute;
+      top: calc(100% + 8px); left: 0;
+      background: #ffffff; border-radius: 1rem;
+      padding: 14px; min-width: 230px; z-index: 200;
+      box-shadow: 0 8px 40px rgba(44,52,54,0.13);
     }
     .tag-popover.open { display: block; }
-    .tag-popover-label { font-size: 0.75rem; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 
-    .tag-chip {
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-      border: 1.5px solid #2e3347;
-      background: #0f1117;
-      color: #94a3b8;
-      transition: all 0.15s;
-      user-select: none;
-    }
-    .tag-chip:hover { border-color: #6366f1; color: #e2e8f0; }
-    .tag-chip.selected { background: #6366f1; border-color: #6366f1; color: #fff; }
-    .tag-chip .del-tag {
-      margin-left: 4px;
-      color: #ef4444;
-      font-size: 0.7rem;
-      opacity: 0.7;
-    }
-    .tag-chip .del-tag:hover { opacity: 1; }
-
-    .new-tag-row { display: flex; gap: 6px; }
-    .new-tag-row input {
-      flex: 1;
-      background: #0f1117;
-      border: 1.5px solid #2e3347;
-      border-radius: 6px;
-      padding: 5px 8px;
-      font-size: 0.82rem;
-      color: #e2e8f0;
-      outline: none;
-    }
-    .new-tag-row input:focus { border-color: #6366f1; }
-    .new-tag-row input::placeholder { color: #475569; }
-    .new-tag-row button {
-      background: #6366f1;
-      border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 0.82rem;
-      color: #fff;
-      cursor: pointer;
-    }
-    .new-tag-row button:hover { background: #4f46e5; }
-
-    .selected-tags-preview { display: flex; flex-wrap: wrap; gap: 5px; }
-    .selected-tags-preview .stag {
-      background: #1e2035;
-      border: 1px solid #6366f1;
-      color: #a5b4fc;
-      border-radius: 20px;
-      padding: 2px 8px;
-      font-size: 0.78rem;
-    }
-
-    /* ── Filters ── */
-    .filter-section { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
-
-    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    .filter-btn {
-      padding: 5px 14px;
-      border: 1.5px solid #2e3347;
-      border-radius: 20px;
-      background: transparent;
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: #64748b;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .filter-btn:hover { border-color: #6366f1; color: #e2e8f0; }
-    .filter-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
-    .filter-btn.active.high  { background: #ef4444; border-color: #ef4444; }
-    .filter-btn.active.medium { background: #f59e0b; border-color: #f59e0b; color: #000; }
-    .filter-btn.active.low  { background: #22c55e; border-color: #22c55e; color: #000; }
-
-    /* ── Todo list ── */
-    .todo-list { display: flex; flex-direction: column; gap: 8px; }
-
-    .todo-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      background: #1a1d27;
-      padding: 14px 16px;
-      border-radius: 12px;
-      border: 1px solid #2e3347;
-      border-left: 4px solid #2e3347;
-      animation: slideIn 0.2s ease;
-      position: relative;
-    }
-    .todo-item.priority-high  { border-left-color: #ef4444; }
-    .todo-item.priority-medium { border-left-color: #f59e0b; }
-    .todo-item.priority-low  { border-left-color: #22c55e; }
-    .todo-item.overdue       { border-left-color: #ef4444 !important; }
-    .todo-item.due-today:not(.overdue) { border-left-color: #f59e0b; }
-    .todo-item.done { opacity: 0.55; }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .todo-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #6366f1;
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .priority-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 5px;
-      cursor: pointer;
-      transition: transform 0.15s;
-    }
-    .priority-dot:hover { transform: scale(1.3); }
-    .priority-dot.high   { background: #ef4444; }
-    .priority-dot.medium { background: #f59e0b; }
-    .priority-dot.low    { background: #22c55e; }
-    .priority-dot.none   { background: #2e3347; border: 1.5px solid #475569; }
-
-    .todo-body { flex: 1; min-width: 0; }
-
-    .todo-text {
-      font-size: 0.97rem;
-      color: #e2e8f0;
-      word-break: break-word;
-      line-height: 1.4;
-    }
-    .todo-item.done .todo-text { text-decoration: line-through; color: #475569; }
-
+    /* Inline edit input */
     .edit-input {
-      width: 100%;
-      border: none;
-      border-bottom: 2px solid #6366f1;
-      outline: none;
-      font-size: 0.97rem;
-      color: #e2e8f0;
-      background: transparent;
+      width: 100%; border: none;
+      border-bottom: 2px solid #006f1d;
+      outline: none; font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 0.95rem; color: #2c3436; background: transparent;
     }
-
-    .todo-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
-
-    .due-badge {
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 20px;
-      white-space: nowrap;
-    }
-    .due-badge.overdue { background: #3b0f0f; color: #f87171; }
-    .due-badge.today   { background: #3b2a0a; color: #fbbf24; }
-    .due-badge.soon    { background: #1a1d27; color: #64748b; border: 1px solid #2e3347; }
-    .due-badge.future  { background: #1a1d27; color: #64748b; border: 1px solid #2e3347; }
-
-    .task-tag {
-      font-size: 0.72rem;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: #1e2035;
-      color: #a5b4fc;
-      border: 1px solid #3730a3;
-      white-space: nowrap;
-    }
-
-    .todo-actions {
-      display: flex;
-      gap: 2px;
-      opacity: 0;
-      transition: opacity 0.15s;
-      flex-shrink: 0;
-    }
-    .todo-item:hover .todo-actions { opacity: 1; }
-
-    .todo-actions button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      color: #64748b;
-      transition: background 0.15s, color 0.15s;
-    }
-    .todo-actions button:hover { background: #22263a; color: #e2e8f0; }
-    .todo-actions .del:hover { color: #ef4444; background: #1f0f0f; }
-
-    /* ── Empty ── */
-    .empty {
-      text-align: center;
-      color: #475569;
-      padding: 48px 0;
-      font-size: 0.95rem;
-    }
-
-    /* ── Footer ── */
-    .footer {
-      margin-top: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.82rem;
-      color: #475569;
-    }
-    .footer button {
-      background: none;
-      border: none;
-      color: #475569;
-      cursor: pointer;
-      font-size: 0.82rem;
-    }
-    .footer button:hover { color: #ef4444; text-decoration: underline; }
   </style>
 </head>
-<body>
-<div class="app">
-  <h1>My Todos</h1>
-  <p class="subtitle" id="date"></p>
+<body class="bg-surface text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container">
 
-  <!-- Add form -->
-  <div class="add-form">
-    <div class="row1">
-      <input type="text" id="new-todo" placeholder="What needs to be done?" maxlength="200">
-      <button class="btn-add" onclick="addTodo()">Add</button>
+<!-- ── Header ─────────────────────────────────────── -->
+<header class="w-full pt-10 pb-6 bg-surface">
+  <div class="max-w-2xl mx-auto px-6 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <span class="material-symbols-outlined text-primary text-3xl">wb_sunny</span>
+      <div>
+        <h1 class="font-headline text-2xl font-bold tracking-tight text-on-surface">My Todos</h1>
+        <p class="font-body text-xs text-on-surface-variant" id="date"></p>
+      </div>
     </div>
-    <div class="row2">
-      <input type="datetime-local" id="new-due" title="Due date & time">
-      <select id="new-priority" title="Priority">
-        <option value="">No priority</option>
-        <option value="high">🔴 High</option>
-        <option value="medium">🟡 Medium</option>
-        <option value="low">🟢 Low</option>
-      </select>
-      <div class="tag-picker-wrap" id="add-tag-wrap">
-        <button class="btn-tags" onclick="toggleTagPopover('add-popover')" type="button" id="add-tag-btn">+ Tags</button>
-        <div class="tag-popover" id="add-popover">
-          <div class="tag-popover-label">Select tags</div>
-          <div class="tag-chips" id="add-tag-chips"></div>
-          <div class="new-tag-row">
-            <input type="text" id="new-tag-input" placeholder="New tag..." maxlength="24" onkeydown="if(event.key==='Enter')addCustomTag()">
-            <button onclick="addCustomTag()">+</button>
+    <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+      <span class="material-symbols-outlined text-xl">person</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────── -->
+<main class="max-w-2xl mx-auto px-6 pt-4 pb-44">
+
+  <!-- Add Task -->
+  <section class="mb-8">
+    <div class="group flex items-center gap-3 bg-surface-container-lowest rounded-full px-5 py-3.5
+                shadow-sm border border-outline-variant/10
+                focus-within:border-primary/30 focus-within:shadow-md transition-all duration-300">
+      <span class="material-symbols-outlined text-outline-variant group-focus-within:text-primary transition-colors text-xl">add</span>
+      <input id="new-todo" type="text" maxlength="200"
+        class="w-full bg-transparent border-none focus:ring-0 text-base font-medium text-on-surface placeholder:text-outline-variant/50"
+        placeholder="Type a task...">
+      <button onclick="addTodo()"
+        class="bg-gradient-to-b from-primary to-primary-fixed-dim text-on-primary w-9 h-9 rounded-full flex items-center justify-center shadow-sm hover:brightness-110 active:scale-90 transition-all shrink-0">
+        <span class="material-symbols-outlined text-lg">arrow_upward</span>
+      </button>
+    </div>
+
+    <!-- Attribute chips -->
+    <div class="flex gap-2 mt-3 px-1 flex-wrap items-center">
+
+      <!-- Due date -->
+      <div class="relative">
+        <button id="due-btn" onclick="togglePanel('due-panel')"
+          class="text-[11px] font-medium text-on-surface-variant/70 hover:text-primary px-3 py-1.5 rounded-full bg-surface-container-low transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">event</span>
+          <span id="due-btn-label">Due Date</span>
+        </button>
+        <div id="due-panel" class="hidden absolute top-full left-0 mt-2 z-50 bg-surface-container-lowest rounded-xl shadow-lg p-3 border border-outline-variant/10">
+          <input type="datetime-local" id="new-due"
+            class="bg-surface-container-low rounded-lg px-3 py-2 text-sm text-on-surface border-none focus:ring-1 focus:ring-primary/30 outline-none">
+          <div class="flex gap-2 mt-2">
+            <button onclick="confirmDue()" class="text-xs bg-primary text-on-primary px-3 py-1.5 rounded-full">Set</button>
+            <button onclick="clearDueInput()" class="text-xs text-on-surface-variant px-3 py-1.5 rounded-full bg-surface-container-low">Clear</button>
           </div>
         </div>
       </div>
-      <div class="selected-tags-preview" id="selected-tags-preview"></div>
+
+      <!-- Priority -->
+      <div class="relative">
+        <button id="priority-btn" onclick="togglePanel('priority-panel')"
+          class="text-[11px] font-medium text-on-surface-variant/70 hover:text-primary px-3 py-1.5 rounded-full bg-surface-container-low transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">low_priority</span>
+          <span id="priority-btn-label">Priority</span>
+        </button>
+        <div id="priority-panel" class="hidden absolute top-full left-0 mt-2 z-50 bg-surface-container-lowest rounded-xl shadow-lg p-2 border border-outline-variant/10 min-w-[140px]">
+          <button onclick="selectPriority(null)"   class="w-full text-xs text-left px-3 py-2 rounded-lg hover:bg-surface-container-low transition-colors text-on-surface-variant">— None</button>
+          <button onclick="selectPriority('high')" class="w-full text-xs text-left px-3 py-2 rounded-lg hover:bg-surface-container-low transition-colors text-error flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-error shrink-0"></span>High
+          </button>
+          <button onclick="selectPriority('medium')" class="w-full text-xs text-left px-3 py-2 rounded-lg hover:bg-surface-container-low transition-colors text-tertiary flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-tertiary shrink-0"></span>Medium
+          </button>
+          <button onclick="selectPriority('low')" class="w-full text-xs text-left px-3 py-2 rounded-lg hover:bg-surface-container-low transition-colors text-primary flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>Low
+          </button>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="tag-picker-wrap relative">
+        <button id="add-tag-btn" onclick="toggleTagPopover('add-popover')"
+          class="text-[11px] font-medium text-on-surface-variant/70 hover:text-primary px-3 py-1.5 rounded-full bg-surface-container-low transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">label</span>
+          <span id="add-tag-label">Tags</span>
+        </button>
+        <div class="tag-popover" id="add-popover">
+          <p class="text-[10px] font-semibold text-on-surface-variant/60 uppercase tracking-wider mb-2">Select tags</p>
+          <div id="add-tag-chips" class="flex flex-wrap gap-1.5 mb-3"></div>
+          <div class="flex gap-2">
+            <input type="text" id="new-tag-input" placeholder="New tag..." maxlength="24"
+              class="flex-1 bg-surface-container-low rounded-lg px-2.5 py-1.5 text-xs text-on-surface border-none focus:ring-1 focus:ring-primary/30 outline-none"
+              onkeydown="if(event.key==='Enter')addCustomTag()">
+            <button onclick="addCustomTag()" class="bg-primary text-on-primary text-xs px-3 py-1.5 rounded-lg font-semibold">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected tags preview -->
+      <div id="selected-tags-preview" class="flex flex-wrap gap-1"></div>
     </div>
-  </div>
+  </section>
 
   <!-- Filters -->
-  <div class="filter-section">
-    <div class="filter-row" id="status-filters">
-      <button class="filter-btn active" onclick="setStatusFilter('all',this)">All</button>
-      <button class="filter-btn" onclick="setStatusFilter('active',this)">Active</button>
-      <button class="filter-btn" onclick="setStatusFilter('done',this)">Done</button>
-      <button class="filter-btn high"   onclick="setPriorityFilter('high',this)">High</button>
-      <button class="filter-btn medium" onclick="setPriorityFilter('medium',this)">Medium</button>
-      <button class="filter-btn low"    onclick="setPriorityFilter('low',this)">Low</button>
+  <section class="mb-8">
+    <!-- Status tabs -->
+    <div class="flex gap-5 border-b border-outline-variant/20 mb-4 overflow-x-auto scrollbar-hide">
+      <button onclick="setStatusFilter('all',this)"    class="filter-tab active   pb-2.5 text-sm font-semibold text-primary border-b-2 border-primary -mb-px px-1 whitespace-nowrap transition-all">All</button>
+      <button onclick="setStatusFilter('active',this)" class="filter-tab inactive pb-2.5 text-sm font-medium text-on-surface-variant/60 hover:text-on-surface-variant border-b-2 border-transparent -mb-px px-1 whitespace-nowrap transition-all">Active</button>
+      <button onclick="setStatusFilter('done',this)"   class="filter-tab inactive pb-2.5 text-sm font-medium text-on-surface-variant/60 hover:text-on-surface-variant border-b-2 border-transparent -mb-px px-1 whitespace-nowrap transition-all">Completed</button>
     </div>
-    <div class="filter-row" id="tag-filters"></div>
+    <!-- Priority chip filters -->
+    <div class="flex gap-2 flex-wrap" id="priority-chips">
+      <button onclick="setPriorityFilter('high',this)"   data-priority="high"   class="pchip text-[11px] font-medium px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant transition-all flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-error inline-block"></span>High</button>
+      <button onclick="setPriorityFilter('medium',this)" data-priority="medium" class="pchip text-[11px] font-medium px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant transition-all flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary inline-block"></span>Medium</button>
+      <button onclick="setPriorityFilter('low',this)"    data-priority="low"    class="pchip text-[11px] font-medium px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant transition-all flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>Low</button>
+    </div>
+    <!-- Tag chips (dynamic) -->
+    <div class="flex gap-2 flex-wrap mt-2" id="tag-filters"></div>
+  </section>
+
+  <!-- Todo list -->
+  <div id="todo-list"></div>
+
+  <!-- Footer -->
+  <div class="mt-10 flex items-center justify-between px-1 opacity-60 hover:opacity-100 transition-opacity">
+    <p class="text-xs font-medium text-on-surface-variant" id="count"></p>
+    <button onclick="clearDone()" class="text-xs font-semibold text-on-surface-variant hover:text-error transition-colors flex items-center gap-1">
+      <span class="material-symbols-outlined text-base">clean_hands</span>
+      Clear completed
+    </button>
   </div>
+</main>
 
-  <div class="todo-list" id="todo-list"></div>
-
-  <div class="footer">
-    <span id="count"></span>
-    <button onclick="clearDone()">Clear completed</button>
+<!-- ── Bottom nav ──────────────────────────────────── -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-center pb-8 pointer-events-none">
+  <div class="pointer-events-auto w-[90%] max-w-sm rounded-full px-4 py-2
+              bg-white/80 backdrop-blur-xl shadow-xl shadow-on-surface/5
+              flex justify-between items-center border border-white/40">
+    <button class="flex flex-col items-center justify-center bg-primary/10 text-primary rounded-full px-6 py-2">
+      <span class="material-symbols-outlined icon-fill">task_alt</span>
+      <span class="text-[10px] font-bold mt-0.5">Tasks</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant/50 px-6 py-2 hover:text-on-surface-variant transition-all">
+      <span class="material-symbols-outlined">calendar_today</span>
+      <span class="text-[10px] font-bold mt-0.5">Calendar</span>
+    </button>
+    <button class="flex flex-col items-center justify-center text-on-surface-variant/50 px-6 py-2 hover:text-on-surface-variant transition-all">
+      <span class="material-symbols-outlined">settings</span>
+      <span class="text-[10px] font-bold mt-0.5">Settings</span>
+    </button>
   </div>
-</div>
+</nav>
 
+<!-- ── JavaScript ──────────────────────────────────── -->
 <script>
   // ── State ──────────────────────────────────────────────
-  let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+  let todos      = JSON.parse(localStorage.getItem('todos')      || '[]');
   let customTags = JSON.parse(localStorage.getItem('customTags') || '[]');
   const PRESET_TAGS = ['Work', 'Personal', 'Shopping', 'Health'];
 
-  let statusFilter = 'all';
-  let priorityFilter = null;  // 'high' | 'medium' | 'low' | null
-  let tagFilter = null;       // tag string | null
-
-  let newTodoTags = [];       // tags selected in the add form
+  let statusFilter   = 'all';
+  let priorityFilter = null;
+  let tagFilter      = null;
+  let newTodoTags    = [];
+  let pendingPriority = null;
+  let pendingDue      = null;
 
   // ── Init ───────────────────────────────────────────────
   document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
@@ -415,226 +298,265 @@
   });
 
   document.addEventListener('click', e => {
-    if (!e.target.closest('.tag-picker-wrap')) closeAllPopovers();
+    if (!e.target.closest('.tag-picker-wrap'))    closeAllTagPopovers();
+    if (!e.target.closest('#due-panel')      && !e.target.closest('#due-btn'))      closePanels('due-panel');
+    if (!e.target.closest('#priority-panel') && !e.target.closest('#priority-btn')) closePanels('priority-panel');
   });
 
   // ── Persistence ────────────────────────────────────────
   function save() {
-    localStorage.setItem('todos', JSON.stringify(todos));
+    localStorage.setItem('todos',      JSON.stringify(todos));
     localStorage.setItem('customTags', JSON.stringify(customTags));
+  }
+
+  // ── Panel helpers ──────────────────────────────────────
+  function togglePanel(id) {
+    const el = document.getElementById(id);
+    const others = ['due-panel','priority-panel'].filter(x => x !== id);
+    others.forEach(x => document.getElementById(x).classList.add('hidden'));
+    el.classList.toggle('hidden');
+  }
+  function closePanels(...ids) {
+    ids.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  }
+
+  function confirmDue() {
+    const val = document.getElementById('new-due').value;
+    pendingDue = val || null;
+    document.getElementById('due-btn-label').textContent = val
+      ? new Date(val).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : 'Due Date';
+    closePanels('due-panel');
+  }
+  function clearDueInput() {
+    pendingDue = null;
+    document.getElementById('new-due').value = '';
+    document.getElementById('due-btn-label').textContent = 'Due Date';
+    closePanels('due-panel');
+  }
+  function selectPriority(p) {
+    pendingPriority = p;
+    const labels = { high: '🔴 High', medium: '🟡 Medium', low: '🟢 Low' };
+    document.getElementById('priority-btn-label').textContent = p ? labels[p] : 'Priority';
+    closePanels('priority-panel');
   }
 
   // ── CRUD ───────────────────────────────────────────────
   function addTodo() {
     const text = document.getElementById('new-todo').value.trim();
     if (!text) return;
-    const due = document.getElementById('new-due').value || null;
-    const priority = document.getElementById('new-priority').value || null;
-    todos.unshift({ id: Date.now(), text, done: false, priority, dueDate: due, tags: [...newTodoTags] });
+    todos.unshift({ id: Date.now(), text, done: false, priority: pendingPriority, dueDate: pendingDue, tags: [...newTodoTags] });
     document.getElementById('new-todo').value = '';
-    document.getElementById('new-due').value = '';
-    document.getElementById('new-priority').value = '';
-    newTodoTags = [];
+    pendingPriority = null; pendingDue = null; newTodoTags = [];
+    document.getElementById('due-btn-label').textContent      = 'Due Date';
+    document.getElementById('priority-btn-label').textContent = 'Priority';
+    document.getElementById('add-tag-label').textContent      = 'Tags';
     updateSelectedTagsPreview();
-    save();
-    render();
-  }
-
-  function toggleTodo(id) {
-    const t = todos.find(t => t.id === id);
-    if (t) t.done = !t.done;
     save(); render();
   }
 
+  function toggleTodo(id) {
+    const t = todos.find(t => t.id === id); if (t) t.done = !t.done;
+    save(); render();
+  }
   function deleteTodo(id) {
     todos = todos.filter(t => t.id !== id);
     save(); render();
   }
-
   function cyclePriority(id) {
-    const t = todos.find(t => t.id === id);
-    if (!t) return;
-    const cycle = [null, 'high', 'medium', 'low'];
+    const t = todos.find(t => t.id === id); if (!t) return;
+    const cycle = [null,'high','medium','low'];
     t.priority = cycle[(cycle.indexOf(t.priority) + 1) % cycle.length];
     save(); render();
   }
-
   function startEdit(id) {
     const item = document.querySelector(`[data-id="${id}"]`);
     const span = item.querySelector('.todo-text');
-    const inp = document.createElement('input');
+    const inp  = document.createElement('input');
     inp.className = 'edit-input';
     inp.value = span.textContent;
-    span.replaceWith(inp);
-    inp.focus(); inp.select();
+    span.replaceWith(inp); inp.focus(); inp.select();
     function commit() {
       const val = inp.value.trim();
       if (val) { const t = todos.find(t => t.id === id); if (t) t.text = val; save(); }
       render();
     }
     inp.addEventListener('blur', commit);
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') render(); });
+    inp.addEventListener('keydown', e => { if (e.key==='Enter') inp.blur(); if (e.key==='Escape') render(); });
   }
 
   // ── Tags ───────────────────────────────────────────────
   function allTags() { return [...PRESET_TAGS, ...customTags]; }
-
   function addCustomTag() {
-    const inp = document.getElementById('new-tag-input');
+    const inp  = document.getElementById('new-tag-input');
     const name = inp.value.trim();
-    if (!name || allTags().map(t=>t.toLowerCase()).includes(name.toLowerCase())) return;
-    customTags.push(name);
-    save();
-    inp.value = '';
+    if (!name || allTags().map(t => t.toLowerCase()).includes(name.toLowerCase())) return;
+    customTags.push(name); save(); inp.value = '';
     renderAddTagChips();
   }
-
   function deleteCustomTag(name) {
     if (todos.some(t => t.tags && t.tags.includes(name))) return;
     customTags = customTags.filter(t => t !== name);
-    if (newTodoTags.includes(name)) newTodoTags = newTodoTags.filter(t => t !== name);
-    save();
-    renderAddTagChips();
-    updateSelectedTagsPreview();
-    render();
+    newTodoTags = newTodoTags.filter(t => t !== name);
+    save(); renderAddTagChips(); updateSelectedTagsPreview(); render();
   }
-
   function toggleNewTodoTag(name) {
-    newTodoTags = newTodoTags.includes(name)
-      ? newTodoTags.filter(t => t !== name)
-      : [...newTodoTags, name];
-    renderAddTagChips();
-    updateSelectedTagsPreview();
+    newTodoTags = newTodoTags.includes(name) ? newTodoTags.filter(t => t !== name) : [...newTodoTags, name];
+    renderAddTagChips(); updateSelectedTagsPreview();
   }
-
   function renderAddTagChips() {
-    const container = document.getElementById('add-tag-chips');
-    container.innerHTML = allTags().map(tag => {
+    document.getElementById('add-tag-chips').innerHTML = allTags().map(tag => {
       const sel = newTodoTags.includes(tag);
-      const isCustom = customTags.includes(tag);
-      return `<span class="tag-chip ${sel ? 'selected' : ''}" onclick="toggleNewTodoTag('${escJs(tag)}')">${escHtml(tag)}${isCustom ? `<span class="del-tag" onclick="event.stopPropagation();deleteCustomTag('${escJs(tag)}')" title="Delete tag">✕</span>` : ''}</span>`;
+      const del = customTags.includes(tag)
+        ? `<span onclick="event.stopPropagation();deleteCustomTag('${escJs(tag)}')" class="text-error/60 hover:text-error text-[10px] ml-1 cursor-pointer">✕</span>`
+        : '';
+      return `<span onclick="toggleNewTodoTag('${escJs(tag)}')"
+        class="inline-flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[11px] font-medium cursor-pointer transition-all select-none
+          ${sel ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'}">
+        ${escHtml(tag)}${del}
+      </span>`;
     }).join('');
   }
-
   function updateSelectedTagsPreview() {
-    const p = document.getElementById('selected-tags-preview');
-    p.innerHTML = newTodoTags.map(t => `<span class="stag">${escHtml(t)}</span>`).join('');
-    const btn = document.getElementById('add-tag-btn');
-    btn.textContent = newTodoTags.length ? `Tags (${newTodoTags.length})` : '+ Tags';
+    document.getElementById('selected-tags-preview').innerHTML = newTodoTags.map(t =>
+      `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary-container text-on-secondary-container">${escHtml(t)}</span>`
+    ).join('');
+    document.getElementById('add-tag-label').textContent = newTodoTags.length ? `Tags (${newTodoTags.length})` : 'Tags';
   }
-
   function toggleTagPopover(id) {
     const pop = document.getElementById(id);
     const wasOpen = pop.classList.contains('open');
-    closeAllPopovers();
+    closeAllTagPopovers();
     if (!wasOpen) { renderAddTagChips(); pop.classList.add('open'); }
   }
-
-  function closeAllPopovers() {
+  function closeAllTagPopovers() {
     document.querySelectorAll('.tag-popover').forEach(p => p.classList.remove('open'));
   }
 
   // ── Filters ────────────────────────────────────────────
   function setStatusFilter(f, btn) {
     statusFilter = f;
-    document.querySelectorAll('#status-filters .filter-btn:not(.high):not(.medium):not(.low)')
-      .forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    document.querySelectorAll('.filter-tab').forEach(b => {
+      b.classList.remove('text-primary','font-semibold','border-primary');
+      b.classList.add('text-on-surface-variant/60','font-medium','border-transparent');
+    });
+    btn.classList.add('text-primary','font-semibold','border-primary');
+    btn.classList.remove('text-on-surface-variant/60','font-medium','border-transparent');
     render();
   }
-
   function setPriorityFilter(p, btn) {
-    if (priorityFilter === p) { priorityFilter = null; btn.classList.remove('active'); }
-    else {
+    if (priorityFilter === p) {
+      priorityFilter = null;
+      document.querySelectorAll('.pchip').forEach(b => {
+        b.classList.remove('bg-secondary-container','text-on-secondary-container');
+        b.classList.add('bg-surface-container-highest','text-on-surface-variant');
+      });
+    } else {
       priorityFilter = p;
-      document.querySelectorAll('.filter-btn.high,.filter-btn.medium,.filter-btn.low').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll('.pchip').forEach(b => {
+        b.classList.remove('bg-secondary-container','text-on-secondary-container');
+        b.classList.add('bg-surface-container-highest','text-on-surface-variant');
+      });
+      btn.classList.add('bg-secondary-container','text-on-secondary-container');
+      btn.classList.remove('bg-surface-container-highest','text-on-surface-variant');
     }
     render();
   }
-
-  function setTagFilter(tag) {
-    tagFilter = tagFilter === tag ? null : tag;
-    render();
-  }
-
+  function setTagFilter(tag) { tagFilter = tagFilter === tag ? null : tag; render(); }
   function clearDone() { todos = todos.filter(t => !t.done); save(); render(); }
 
-  // ── Due date helpers ───────────────────────────────────
+  // ── Due date ───────────────────────────────────────────
   function formatDue(iso) {
     if (!iso) return null;
-    const due = new Date(iso);
-    const now = new Date();
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const due = new Date(iso), now = new Date();
+    const todayEnd    = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     const tomorrowEnd = new Date(todayEnd); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-    if (due < now) return { label: 'Overdue', status: 'overdue' };
-    if (due <= todayEnd) return { label: 'Today ' + due.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), status: 'today' };
-    if (due <= tomorrowEnd) return { label: 'Tomorrow ' + due.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), status: 'soon' };
-    return { label: due.toLocaleDateString('en-US', {month:'short',day:'numeric'}) + ' ' + due.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), status: 'future' };
+    const t = due.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (due < now)          return { label: 'Overdue', status: 'overdue' };
+    if (due <= todayEnd)    return { label: `Today ${t}`, status: 'today' };
+    if (due <= tomorrowEnd) return { label: `Tomorrow ${t}`, status: 'soon' };
+    return { label: due.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + t, status: 'future' };
   }
 
   // ── Render ─────────────────────────────────────────────
   function render() {
     renderTagFilterBar();
     const list = document.getElementById('todo-list');
-
-    const priorityOrder = { high: 0, medium: 1, low: 2, null: 3, undefined: 3 };
-    let visible = [...todos].sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
-
+    const pOrder = { high:0, medium:1, low:2 };
+    let visible = [...todos].sort((a,b) => (pOrder[a.priority]??3)-(pOrder[b.priority]??3));
     visible = visible.filter(t => {
-      if (statusFilter === 'active' && t.done) return false;
-      if (statusFilter === 'done' && !t.done) return false;
+      if (statusFilter==='active'    &&  t.done) return false;
+      if (statusFilter==='done'      && !t.done) return false;
       if (priorityFilter && t.priority !== priorityFilter) return false;
       if (tagFilter && !(t.tags && t.tags.includes(tagFilter))) return false;
       return true;
     });
 
     if (visible.length === 0) {
-      list.innerHTML = `<div class="empty">Nothing here yet.</div>`;
+      list.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 text-center">
+          <div class="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-6">
+            <span class="material-symbols-outlined text-primary/30 text-3xl">spa</span>
+          </div>
+          <h3 class="text-xl font-bold font-headline text-on-surface mb-2">A clear mind.</h3>
+          <p class="text-sm text-on-surface-variant max-w-[240px] leading-relaxed">Your list is empty. Enjoy the peace or start something new.</p>
+        </div>`;
     } else {
       list.innerHTML = visible.map(t => {
-        const due = formatDue(t.dueDate);
-        const pClass = t.priority ? `priority-${t.priority}` : '';
-        const overdueClass = due && due.status === 'overdue' && !t.done ? 'overdue' : '';
-        const todayClass = due && due.status === 'today' && !t.done ? 'due-today' : '';
-        const tags = (t.tags || []).map(tag => `<span class="task-tag">${escHtml(tag)}</span>`).join('');
-        const dueBadge = due ? `<span class="due-badge ${due.status}">${escHtml(due.label)}</span>` : '';
+        const due  = formatDue(t.dueDate);
+        const pCls = t.priority ? `p-${t.priority}` : '';
+        const overdueAccent = due?.status === 'overdue' && !t.done ? 'p-high' : '';
+
+        // Due badge colours
+        const dueCls = due ? { overdue:'bg-error/10 text-error', today:'bg-tertiary-container/40 text-on-tertiary-container', soon:'bg-surface-container-high text-on-surface-variant', future:'bg-surface-container-high text-on-surface-variant' }[due.status] : '';
+        const dueBadge = due ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${dueCls}"><span class="material-symbols-outlined text-[12px]">schedule</span>${escHtml(due.label)}</span>` : '';
+        const tagChips = (t.tags||[]).map(tag => `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary-container/60 text-on-secondary-container">${escHtml(tag)}</span>`).join('');
+
+        // Priority dot
+        const pDotColor = { high:'bg-error', medium:'bg-tertiary', low:'bg-primary' };
+        const pDot = t.priority
+          ? `<span class="w-2 h-2 rounded-full ${pDotColor[t.priority]} flex-shrink-0 mt-1.5 cursor-pointer hover:scale-125 transition-transform" onclick="cyclePriority(${t.id})" title="Change priority"></span>`
+          : `<span class="w-2 h-2 rounded-full border border-outline-variant flex-shrink-0 mt-1.5 cursor-pointer opacity-0 group-hover:opacity-50 transition-all" onclick="cyclePriority(${t.id})" title="Set priority"></span>`;
+
         return `
-          <div class="todo-item ${t.done?'done':''} ${pClass} ${overdueClass} ${todayClass}" data-id="${t.id}">
-            <input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})">
-            <span class="priority-dot ${t.priority||'none'}" onclick="cyclePriority(${t.id})" title="Click to change priority"></span>
-            <div class="todo-body">
-              <span class="todo-text">${escHtml(t.text)}</span>
-              ${(due || tags) ? `<div class="todo-meta">${dueBadge}${tags}</div>` : ''}
+          <div class="todo-item group flex items-start gap-3 bg-surface-container-lowest rounded-xl p-4 mb-2 slide-in border-l-[3px] border-l-transparent ${pCls} ${overdueAccent}" data-id="${t.id}">
+            <div class="task-orb ${t.done?'checked':''} mt-0.5" onclick="toggleTodo(${t.id})"></div>
+            ${pDot}
+            <div class="flex-1 min-w-0">
+              <span class="todo-text text-[0.95rem] leading-snug ${t.done ? 'line-through text-on-surface-variant/50' : 'text-on-surface'}">${escHtml(t.text)}</span>
+              ${(due || (t.tags&&t.tags.length)) ? `<div class="flex flex-wrap gap-1.5 mt-2">${dueBadge}${tagChips}</div>` : ''}
             </div>
-            <div class="todo-actions">
-              <button onclick="startEdit(${t.id})" title="Edit">✏️</button>
-              <button class="del" onclick="deleteTodo(${t.id})" title="Delete">🗑️</button>
+            <div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+              <button onclick="startEdit(${t.id})" class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant transition-colors" title="Edit">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button onclick="deleteTodo(${t.id})" class="p-1.5 rounded-lg hover:bg-error/10 text-on-surface-variant hover:text-error transition-colors" title="Delete">
+                <span class="material-symbols-outlined text-base">delete</span>
+              </button>
             </div>
           </div>`;
       }).join('');
     }
 
     const active = todos.filter(t => !t.done).length;
-    document.getElementById('count').textContent = `${active} item${active !== 1 ? 's' : ''} left`;
+    document.getElementById('count').textContent = `${active} item${active!==1?'s':''} left`;
   }
 
   function renderTagFilterBar() {
-    const used = [...new Set(todos.flatMap(t => t.tags || []))];
-    const bar = document.getElementById('tag-filters');
-    if (used.length === 0) { bar.innerHTML = ''; return; }
+    const used = [...new Set(todos.flatMap(t => t.tags||[]))];
+    const bar  = document.getElementById('tag-filters');
+    if (!used.length) { bar.innerHTML = ''; return; }
     bar.innerHTML = used.map(tag => `
-      <button class="filter-btn ${tagFilter === tag ? 'active' : ''}" onclick="setTagFilter('${escJs(tag)}')">${escHtml(tag)}</button>
-    `).join('');
+      <button onclick="setTagFilter('${escJs(tag)}')"
+        class="text-[11px] font-medium px-3 py-1 rounded-full transition-all
+          ${tagFilter===tag ? 'bg-secondary-container text-on-secondary-container' : 'bg-surface-container-highest text-on-surface-variant hover:bg-surface-container'}">
+        ${escHtml(tag)}
+      </button>`).join('');
   }
 
   // ── Utils ──────────────────────────────────────────────
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function escJs(str) {
-    return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  }
+  function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function escJs(s)   { return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
   render();
 </script>
